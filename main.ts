@@ -16,6 +16,18 @@ class PositionIterator {
     }
 }
 
+interface Color {
+    r: number;
+    b: number;
+    g: number;
+    a: number;
+}
+
+interface Palette {
+    primaryColor: Color
+    secondaryColor: Color
+}
+
 class Mask {
     pixels: Array<boolean>
     width: number
@@ -55,12 +67,34 @@ class Mask {
     }
 }
 
+class Sprite {
+    palette: Palette
+    mask: Mask
+
+    constructor(width: number, height: number) {
+        this.palette = {
+            primaryColor: { r: 122, g: 150, b: 8, a: 255 },
+            secondaryColor: { r: 7, g: 15, b: 43, a: 255 }
+        };
+        this.mask = new Mask(width, height);
+    }
+
+    getPixel(x: number, y: number) {
+        return this.mask.getPixel(x, y) ? this.palette.primaryColor : this.palette.secondaryColor;
+    }
+
+    togglePixel(x: number, y: number) {
+        this.mask.togglePixel(x, y);
+    }
+}
+
 class App {
 
     canvas: HTMLCanvasElement
     ctx: CanvasRenderingContext2D
     imageData: ImageData
     mask: Mask
+    sprite: Sprite
 
     constructor() {
         this.canvas = <HTMLCanvasElement>document.getElementById("stagesVisualEditor");
@@ -69,23 +103,21 @@ class App {
         this.canvas.addEventListener("click", (event) => this.handleClick(event));
         this.imageData = this.ctx.createImageData(this.canvas.width, this.canvas.height);
         this.mask = new Mask(this.canvas.width, this.canvas.height);
+        this.sprite = new Sprite(this.canvas.width, this.canvas.height);
         this.redraw();
     }
 
     handleClick(event: MouseEvent) : void {
         const cursorPos = this.getTransformedPoint(event.offsetX, event.offsetY);
         console.log("setPixel", { x: cursorPos.x, y: cursorPos.y });
-        this.mask.togglePixel(cursorPos.x, cursorPos.y);
+        this.sprite.togglePixel(cursorPos.x, cursorPos.y);
         this.redraw();
     }
 
     redraw() {
         new PositionIterator(this.canvas.width, this.canvas.height).eachPos((x: number, y: number) => {
-            if(this.mask.getPixel(x, y)) {
-                this.setPixel(x, y, 0, 153, 0, 100);
-            } else {
-                this.setPixel(x, y, 255, 255, 255, 100);
-            }
+            const rgba = this.sprite.getPixel(x, y);
+            this.setPixel(x, y, rgba.r, rgba.g, rgba.b, rgba.a);
         });
         this.ctx.putImageData(this.imageData, 0, 0);
     }

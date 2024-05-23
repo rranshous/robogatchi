@@ -40,6 +40,21 @@ class Mask {
         return y * this.width + x;
     }
 }
+class Sprite {
+    constructor(width, height) {
+        this.palette = {
+            primaryColor: { r: 122, g: 150, b: 8, a: 255 },
+            secondaryColor: { r: 7, g: 15, b: 43, a: 255 }
+        };
+        this.mask = new Mask(width, height);
+    }
+    getPixel(x, y) {
+        return this.mask.getPixel(x, y) ? this.palette.primaryColor : this.palette.secondaryColor;
+    }
+    togglePixel(x, y) {
+        this.mask.togglePixel(x, y);
+    }
+}
 class App {
     constructor() {
         this.canvas = document.getElementById("stagesVisualEditor");
@@ -49,23 +64,20 @@ class App {
         this.ctx = this.canvas.getContext("2d");
         this.canvas.addEventListener("click", (event) => this.handleClick(event));
         this.imageData = this.ctx.createImageData(this.canvas.width, this.canvas.height);
-        this.image = new Mask(this.canvas.width, this.canvas.height);
+        this.mask = new Mask(this.canvas.width, this.canvas.height);
+        this.sprite = new Sprite(this.canvas.width, this.canvas.height);
         this.redraw();
     }
     handleClick(event) {
         const cursorPos = this.getTransformedPoint(event.offsetX, event.offsetY);
         console.log("setPixel", { x: cursorPos.x, y: cursorPos.y });
-        this.image.togglePixel(cursorPos.x, cursorPos.y);
+        this.sprite.togglePixel(cursorPos.x, cursorPos.y);
         this.redraw();
     }
     redraw() {
         new PositionIterator(this.canvas.width, this.canvas.height).eachPos((x, y) => {
-            if (this.image.getPixel(x, y)) {
-                this.setPixel(x, y, 0, 153, 0, 100);
-            }
-            else {
-                this.setPixel(x, y, 255, 255, 255, 100);
-            }
+            const rgba = this.sprite.getPixel(x, y);
+            this.setPixel(x, y, rgba.r, rgba.g, rgba.b, rgba.a);
         });
         this.ctx.putImageData(this.imageData, 0, 0);
     }
