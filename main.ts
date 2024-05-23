@@ -1,8 +1,65 @@
+class PositionIterator {
+    width: number
+    height: number
+
+    constructor(width: number, height: number) { 
+        this.width = width;
+        this.height = height;
+    }
+
+    eachPos(callback: Function) {
+        for(let x=0; x<this.width; x++) {
+            for(let y=0; y<this.height; y++) {
+                callback(x, y);
+            }
+        }
+    }
+}
+
+class MonoImage {
+    pixels: Array<boolean>
+    width: number
+    height: number
+
+    constructor(width: number, height: number) {
+        this.pixels = new Array<boolean>;
+        this.width = width;
+        this.height = height;
+    }
+
+    initializePixels() {
+        new PositionIterator(this.width, this.height).eachPos((x: number, y: number) => {
+            this.setPixel(x, y);
+        })
+    }
+
+    getPixel(x: number, y: number) {
+        return this.pixels[this.calcPos(x, y)];
+    }
+
+    setPixel(x: number, y: number, val=true) {
+        this.pixels[this.calcPos(x, y)] = true;
+    }
+
+    clearPixel(x: number, y: number) {
+        this.setPixel(x, y, false); 
+    }
+
+    togglePixel(x: number, y: number) {
+        this.setPixel(x, y, !this.getPixel(x, y));
+    }
+
+    calcPos(x: number, y: number) {
+        return y * this.width + x;
+    }
+}
+
 class App {
 
     canvas: HTMLCanvasElement
     ctx: CanvasRenderingContext2D
     imageData: ImageData
+    image: MonoImage
 
     constructor() {
         this.canvas = <HTMLCanvasElement>document.getElementById("stagesVisualEditor");
@@ -10,12 +67,25 @@ class App {
         this.ctx = <CanvasRenderingContext2D>this.canvas.getContext("2d");
         this.canvas.addEventListener("click", (event) => this.handleClick(event));
         this.imageData = this.ctx.createImageData(this.canvas.width, this.canvas.height);
+        this.image = new MonoImage(this.canvas.width, this.canvas.height);
     }
 
     handleClick(event: MouseEvent) : void {
         const cursorPos = this.getTransformedPoint(event.offsetX, event.offsetY);
-        console.log("setPixel", { x: cursorPos.x, y: cursorPos.y })
-        this.setPixel(cursorPos.x, cursorPos.y, 0, 153, 0, 100);
+        console.log("setPixel", { x: cursorPos.x, y: cursorPos.y });
+        this.image.togglePixel(cursorPos.x, cursorPos.y);
+        this.redraw();
+    }
+
+    redraw() {
+        new PositionIterator(this.canvas.width, this.canvas.height).eachPos((x: number, y: number) => {
+            if(this.image.getPixel(x, y)) {
+                this.setPixel(x, y, 0, 153, 0, 100);
+            } else {
+                this.setPixel(x, y, 255, 255, 255, 100);
+            }
+        });
+        this.ctx.putImageData(this.imageData, 0, 0);
     }
 
     setPixel(x: number, y: number, r: number, g: number, b: number, a: number) {
@@ -24,8 +94,7 @@ class App {
         this.imageData.data[index * 4 + 1] = g;
         this.imageData.data[index * 4 + 2] = b;
         this.imageData.data[index * 4 + 3] = a;
-        this.ctx.putImageData(this.imageData, 0, 0);
-      }
+    }
 
     getTransformedPoint(x: number, y: number) {
         const originalPoint = new DOMPoint(x, y);
