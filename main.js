@@ -12,22 +12,23 @@ class PositionIterator {
         }
     }
 }
-class MonoImage {
+class Mask {
     constructor(width, height) {
         this.pixels = new Array;
         this.width = width;
         this.height = height;
+        this.initializePixels();
     }
     initializePixels() {
         new PositionIterator(this.width, this.height).eachPos((x, y) => {
-            this.setPixel(x, y);
+            this.setPixel(x, y, false);
         });
     }
     getPixel(x, y) {
         return this.pixels[this.calcPos(x, y)];
     }
     setPixel(x, y, val = true) {
-        this.pixels[this.calcPos(x, y)] = true;
+        this.pixels[this.calcPos(x, y)] = val;
     }
     clearPixel(x, y) {
         this.setPixel(x, y, false);
@@ -48,7 +49,8 @@ class App {
         this.ctx = this.canvas.getContext("2d");
         this.canvas.addEventListener("click", (event) => this.handleClick(event));
         this.imageData = this.ctx.createImageData(this.canvas.width, this.canvas.height);
-        this.image = new MonoImage(this.canvas.width, this.canvas.height);
+        this.image = new Mask(this.canvas.width, this.canvas.height);
+        this.redraw();
     }
     handleClick(event) {
         const cursorPos = this.getTransformedPoint(event.offsetX, event.offsetY);

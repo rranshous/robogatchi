@@ -16,7 +16,7 @@ class PositionIterator {
     }
 }
 
-class MonoImage {
+class Mask {
     pixels: Array<boolean>
     width: number
     height: number
@@ -25,11 +25,12 @@ class MonoImage {
         this.pixels = new Array<boolean>;
         this.width = width;
         this.height = height;
+        this.initializePixels();
     }
 
     initializePixels() {
         new PositionIterator(this.width, this.height).eachPos((x: number, y: number) => {
-            this.setPixel(x, y);
+            this.setPixel(x, y, false);
         })
     }
 
@@ -38,7 +39,7 @@ class MonoImage {
     }
 
     setPixel(x: number, y: number, val=true) {
-        this.pixels[this.calcPos(x, y)] = true;
+        this.pixels[this.calcPos(x, y)] = val;
     }
 
     clearPixel(x: number, y: number) {
@@ -59,7 +60,7 @@ class App {
     canvas: HTMLCanvasElement
     ctx: CanvasRenderingContext2D
     imageData: ImageData
-    image: MonoImage
+    mask: Mask
 
     constructor() {
         this.canvas = <HTMLCanvasElement>document.getElementById("stagesVisualEditor");
@@ -67,19 +68,20 @@ class App {
         this.ctx = <CanvasRenderingContext2D>this.canvas.getContext("2d");
         this.canvas.addEventListener("click", (event) => this.handleClick(event));
         this.imageData = this.ctx.createImageData(this.canvas.width, this.canvas.height);
-        this.image = new MonoImage(this.canvas.width, this.canvas.height);
+        this.mask = new Mask(this.canvas.width, this.canvas.height);
+        this.redraw();
     }
 
     handleClick(event: MouseEvent) : void {
         const cursorPos = this.getTransformedPoint(event.offsetX, event.offsetY);
         console.log("setPixel", { x: cursorPos.x, y: cursorPos.y });
-        this.image.togglePixel(cursorPos.x, cursorPos.y);
+        this.mask.togglePixel(cursorPos.x, cursorPos.y);
         this.redraw();
     }
 
     redraw() {
         new PositionIterator(this.canvas.width, this.canvas.height).eachPos((x: number, y: number) => {
-            if(this.image.getPixel(x, y)) {
+            if(this.mask.getPixel(x, y)) {
                 this.setPixel(x, y, 0, 153, 0, 100);
             } else {
                 this.setPixel(x, y, 255, 255, 255, 100);
