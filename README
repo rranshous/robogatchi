@@ -1,0 +1,42 @@
+ROBOGATCHI
+
+little electronic pet
+
+Metrics:
+HEALTH
+HAPPYNESS
+
+Status':
+HUNGRY
+SATIATED
+FULL
+TIRED
+ENERGETIC
+PLAYFUL
+ANGRY
+LOVING
+TALKATIVE
+LONELY
+
+Stages:
+EGG
+BABY
+CHILD
+TEEN
+ADULT
+
+Interactions:
+PET
+WALK
+PLAY
+LISTEN
+HUG
+FEED
+
+
+Robogatchi's are individual
+Each one will have a name, images which correlate to Stages
+ and visual changes which correlate to Status
+Individuals will have different attitudes and respond differently
+ to stimuli
+
